@@ -146,7 +146,7 @@ public class SimpleReflection
 		{
 			for(Field field : superclass.getDeclaredFields())
 			{
-				if(ReflectionProvider.classEquals(field.getType(), fieldClass))
+				if(ReflectionProvider.classEquals(fieldClass, field.getType()))
 				{
 					currentIndex++;
 
@@ -191,7 +191,7 @@ public class SimpleReflection
 		{
 			for(Method method : superClass.getDeclaredMethods())
 			{
-				if(method.getName().equals(name) && ReflectionProvider.parametersEquals(ReflectionProvider.getClasses(parameters), method.getParameterTypes()))
+				if(method.getName().equals(name) && ReflectionProvider.parametersEquals(method.getParameterTypes(), ReflectionProvider.getClasses(parameters)))
 					return invokeMethod0(method, parameters);
 			}
 		}
@@ -207,7 +207,7 @@ public class SimpleReflection
 		{
 			for(Method method : superClass.getDeclaredMethods())
 			{
-				if(ReflectionProvider.classEquals(method.getReturnType(), returnType) && ReflectionProvider.parametersEquals(method.getParameterTypes(), ReflectionProvider.getClasses(parameters)))
+				if(ReflectionProvider.classEquals(returnType, method.getReturnType()) && ReflectionProvider.parametersEquals(method.getParameterTypes(), ReflectionProvider.getClasses(parameters)))
 				{
 					currentIndex++;
 

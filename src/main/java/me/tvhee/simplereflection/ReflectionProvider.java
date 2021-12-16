@@ -60,6 +60,11 @@ public class ReflectionProvider
 		}
 	}
 
+	public static Class<?> getCraftBukkitClass(String name)
+	{
+		return getClass(MinecraftVersion.getVersion().replace(name));
+	}
+
 	public static Class<?> getMinecraftClass(String before1_17, String after1_17)
 	{
 		if(MinecraftVersion.getVersion().atLeast(MinecraftVersion.v1_17_R1))
@@ -89,7 +94,7 @@ public class ReflectionProvider
 
 	public static boolean classEquals(Class<?> clazz1, Class<?> clazz2)
 	{
-		return clazz1.isAssignableFrom(clazz2);
+		return clazz1.isAssignableFrom(clazz2) || clazz1.equals(clazz2);
 	}
 
 	public static List<Class<?>> getSuperClasses(Class<?> clazz)
