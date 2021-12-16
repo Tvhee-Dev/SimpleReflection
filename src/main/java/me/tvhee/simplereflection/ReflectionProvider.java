@@ -5,16 +5,34 @@ import java.util.List;
 
 public class ReflectionProvider
 {
-	private ReflectionProvider() {}
+	private ReflectionProvider(){}
 
 	public static SimpleReflection reflect(Class<?> clazz)
 	{
+		if(clazz == null)
+			return null;
+
 		return new SimpleReflection(clazz);
 	}
 
 	public static SimpleReflection reflect(Object instance)
 	{
+		if(instance == null)
+			return null;
+
 		return new SimpleReflection(instance);
+	}
+
+	public static boolean hasMinecraftClass(String before1_17, String after1_17)
+	{
+		try
+		{
+			return getMinecraftClass(before1_17, after1_17) != null;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
 	}
 
 	public static boolean hasClass(String name)
@@ -33,13 +51,21 @@ public class ReflectionProvider
 	{
 		try
 		{
-			return Class.forName(MinecraftVersion.getVersion().replace(name));
+			return Class.forName(name);
 		}
 		catch(ClassNotFoundException e)
 		{
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public static Class<?> getMinecraftClass(String before1_17, String after1_17)
+	{
+		if(MinecraftVersion.getVersion().atLeast(MinecraftVersion.v1_17_R1))
+			return getClass(MinecraftVersion.getVersion().replace(after1_17));
+		else
+			return getClass(MinecraftVersion.getVersion().replace(before1_17));
 	}
 
 	public static Class<? extends Enum<?>> getEnumClass(String name)
@@ -63,24 +89,7 @@ public class ReflectionProvider
 
 	public static boolean classEquals(Class<?> clazz1, Class<?> clazz2)
 	{
-		boolean found = clazz1.equals(clazz2) || PrimitiveClass.compareAll(clazz1, clazz2);
-
-		if(!found)
-		{
-			for(Class<?> methodReturnTypeClass : getSuperClasses(clazz1))
-			{
-				for(Class<?> returnTypeClass : getSuperClasses(clazz2))
-				{
-					if(PrimitiveClass.compareAll(methodReturnTypeClass, returnTypeClass))
-					{
-						found = true;
-						break;
-					}
-				}
-			}
-		}
-
-		return found;
+		return clazz1.isAssignableFrom(clazz2);
 	}
 
 	public static List<Class<?>> getSuperClasses(Class<?> clazz)

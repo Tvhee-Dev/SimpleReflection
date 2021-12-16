@@ -39,7 +39,7 @@ public enum MinecraftVersion
 	{
 		try
 		{
-			String packageName = ReflectionProvider.reflect(Class.forName("org.bukkit.Bukkit")).invokeMethod(Class.forName("org.bukkit.Server"), "getServer").getReflectedClass().getPackage().getName();
+			String packageName = ReflectionProvider.reflect(Class.forName("org.bukkit.Bukkit")).invokeMethod("getServer").getReflectedClass().getPackage().getName();
 			return MinecraftVersion.valueOf(packageName.substring(packageName.lastIndexOf('.') + 1));
 		}
 		catch(ClassNotFoundException e)

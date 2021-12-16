@@ -108,7 +108,7 @@ public class SimpleReflection
 		if(field == null)
 			return null;
 
-		return new SimpleReflection(field.getFieldValue(instance));
+		return checkAndReturn(field.getFieldValue(instance));
 	}
 
 	public boolean hasField(String fieldName)
@@ -130,7 +130,7 @@ public class SimpleReflection
 		if(field == null)
 			return null;
 
-		return new SimpleReflection(field.getFieldValue(instance));
+		return checkAndReturn(field.getFieldValue(instance));
 	}
 
 	public SimpleReflection invokeMethod(Class<?> returnType, Object... parameters) throws ReflectException
@@ -138,7 +138,7 @@ public class SimpleReflection
 		return invokeMethod(returnType, 0, parameters);
 	}
 
-	private <T> SimpleField getField0(Class<T> fieldClass, int index) throws ReflectException
+	private SimpleField getField0(Class<?> fieldClass, int index) throws ReflectException
 	{
 		int currentIndex = -1;
 
@@ -146,7 +146,7 @@ public class SimpleReflection
 		{
 			for(Field field : superclass.getDeclaredFields())
 			{
-				if(ReflectionProvider.classEquals(fieldClass, field.getType()))
+				if(ReflectionProvider.classEquals(field.getType(), fieldClass))
 				{
 					currentIndex++;
 
@@ -207,7 +207,7 @@ public class SimpleReflection
 		{
 			for(Method method : superClass.getDeclaredMethods())
 			{
-				if(ReflectionProvider.classEquals(method.getReturnType(), returnType) && ReflectionProvider.parametersEquals(ReflectionProvider.getClasses(parameters), method.getParameterTypes()))
+				if(ReflectionProvider.classEquals(method.getReturnType(), returnType) && ReflectionProvider.parametersEquals(method.getParameterTypes(), ReflectionProvider.getClasses(parameters)))
 				{
 					currentIndex++;
 
@@ -228,7 +228,7 @@ public class SimpleReflection
 		try
 		{
 			method.setAccessible(true);
-			return new SimpleReflection(method.invoke(instance, parameters));
+			return checkAndReturn(method.invoke(instance, parameters));
 		}
 		catch(IllegalAccessException | InvocationTargetException e)
 		{
@@ -245,7 +245,7 @@ public class SimpleReflection
 				try
 				{
 					constructor.setAccessible(true);
-					return new SimpleReflection(constructor.newInstance(parameters));
+					return checkAndReturn(constructor.newInstance(parameters));
 				}
 				catch(IllegalAccessException | InstantiationException | InvocationTargetException e)
 				{
@@ -261,5 +261,13 @@ public class SimpleReflection
 	public String toString()
 	{
 		return "SimpleReflection{" + "class=" + clazz + ", instance=" + instance + '}';
+	}
+
+	private SimpleReflection checkAndReturn(Object value)
+	{
+		if(value == null)
+			return null;
+
+		return new SimpleReflection(value);
 	}
 }
