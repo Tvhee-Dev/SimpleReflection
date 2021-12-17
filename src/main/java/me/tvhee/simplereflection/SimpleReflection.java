@@ -1,6 +1,9 @@
 package me.tvhee.simplereflection;
 
 import java.lang.reflect.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class SimpleReflection
 {
@@ -52,6 +55,29 @@ public class SimpleReflection
 	{
 		this.instance = instance;
 		return this;
+	}
+
+	public List<String> getFields()
+	{
+		List<String> fields = new ArrayList<>();
+
+		for(Field field : this.clazz.getDeclaredFields())
+			fields.add(field.getName());
+
+		return fields;
+	}
+
+	public List<String> getFields(Class<?> type)
+	{
+		List<String> fields = new ArrayList<>();
+
+		for(Field field : this.clazz.getDeclaredFields())
+		{
+			if(ReflectionProvider.classEquals(type, field.getType()))
+				fields.add(field.getName());
+		}
+
+		return fields;
 	}
 
 	public SimpleReflection setField(Class<?> fieldClass, Object value) throws ReflectException
@@ -133,11 +159,6 @@ public class SimpleReflection
 		return checkAndReturn(field.getFieldValue(instance));
 	}
 
-	public SimpleReflection invokeMethod(Class<?> returnType, Object... parameters) throws ReflectException
-	{
-		return invokeMethod(returnType, 0, parameters);
-	}
-
 	private SimpleField getField0(Class<?> fieldClass, int index) throws ReflectException
 	{
 		int currentIndex = -1;
@@ -183,6 +204,38 @@ public class SimpleReflection
 		}
 
 		return null;
+	}
+
+	public List<Method> getMethods()
+	{
+		List<Method> methods = new ArrayList<>();
+
+		for(Method method : this.clazz.getMethods())
+		{
+			method.setAccessible(true);
+			methods.add(method);
+		}
+
+		return methods;
+	}
+
+	public List<Method> getMethods(String name)
+	{
+		List<Method> methods = getMethods();
+		methods.removeIf(method -> !method.getName().equals(name));
+		return methods;
+	}
+
+	public List<Method> getMethods(Class<?> type)
+	{
+		List<Method> methods = getMethods();
+		methods.removeIf(method -> !ReflectionProvider.classEquals(type, method.getReturnType()));
+		return methods;
+	}
+
+	public SimpleReflection invokeMethod(Class<?> returnType, Object... parameters) throws ReflectException
+	{
+		return invokeMethod(returnType, 0, parameters);
 	}
 
 	public SimpleReflection invokeMethod(String name, Object... parameters) throws ReflectException
@@ -234,6 +287,11 @@ public class SimpleReflection
 		{
 			throw new ReflectException(ReflectException.ReflectExceptionCause.WRONG_PARAMETERS, method, e);
 		}
+	}
+
+	public List<Constructor<?>> getConstructors()
+	{
+		return Arrays.asList(this.clazz.getDeclaredConstructors());
 	}
 
 	public SimpleReflection invokeConstructor(Object... parameters) throws ReflectException

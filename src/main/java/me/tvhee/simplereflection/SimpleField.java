@@ -33,6 +33,11 @@ public class SimpleField
 		this.field = field;
 	}
 
+	public Field getJavaField()
+	{
+		return field;
+	}
+
 	public void setFieldValue(Object instance, Object value) throws ReflectException
 	{
 		initializeField(instance);
