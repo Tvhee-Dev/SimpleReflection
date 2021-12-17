@@ -32,7 +32,7 @@ public enum MinecraftVersion
 
 	public boolean atLeast(MinecraftVersion minecraftVersion)
 	{
-		return minecraftVersion.ordinal() >= ordinal();
+		return ordinal() >= minecraftVersion.ordinal();
 	}
 
 	public static MinecraftVersion getVersion()
