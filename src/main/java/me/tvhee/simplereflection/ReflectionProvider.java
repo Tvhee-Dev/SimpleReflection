@@ -135,7 +135,7 @@ public class ReflectionProvider
 
 	public static boolean classEquals(Class<?> clazz1, Class<?> clazz2)
 	{
-		return clazz1.isAssignableFrom(clazz2) || clazz1.equals(clazz2);
+		return clazz1 != null && clazz2 != null && (clazz1.isAssignableFrom(clazz2) || clazz1.equals(clazz2));
 	}
 
 	public static List<Class<?>> getSuperClasses(Class<?> clazz)
