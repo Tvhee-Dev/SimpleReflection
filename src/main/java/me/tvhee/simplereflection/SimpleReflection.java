@@ -32,23 +32,31 @@ public class SimpleReflection
 		return clazz;
 	}
 
-	public Object getObjectInstance()
+	public List<Class<?>> getGenericClasses()
 	{
-		return instance;
+		List<Class<?>> classes = new ArrayList<>();
+
+		for(Type type : ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments())
+			classes.add((Class<?>) type);
+
+		return classes;
 	}
 
-	public <T> T getObjectInstance(Class<T> expectedType)
+	public String getObjectInstanceString()
 	{
-		PrimitiveClass primitiveClass = PrimitiveClass.of(expectedType);
-		Class<?> lookingUp = expectedType;
+		return String.valueOf(this.instance);
+	}
 
-		if(primitiveClass != null)
-			lookingUp = primitiveClass.getAlternative();
-
-		if(lookingUp.isInstance(this.instance))
-			return (T) instance;
-		
-		return null;
+	public <T> T getObjectInstance()
+	{
+		try
+		{
+			return (T) this.instance;
+		}
+		catch(ClassCastException e)
+		{
+			return null;
+		}
 	}
 
 	public SimpleReflection setObjectInstance(Object instance)

@@ -48,16 +48,50 @@ public class SimpleField
 		}
 		else if(fieldClass.isInstance(value))
 		{
+			value = fieldClass.cast(value);
+
 			switch(fieldClass)
 			{
-				case BYTE : putByte((byte) value);
-				case SHORT : putShort((short) value);
-				case INTEGER : putInt((int) value);
-				case LONG : putLong((long) value);
-				case FLOAT : putFloat((float) value);
-				case DOUBLE : putDouble((double) value);
-				case BOOLEAN : putBoolean((boolean) value);
-				case CHARACTER : putChar((char) value);
+				case BYTE :
+				{
+					putByte((byte) value);
+					break;
+				}
+				case SHORT :
+				{
+					putShort((short) value);
+					break;
+				}
+				case INTEGER :
+				{
+					putInt((int) value);
+					break;
+				}
+				case LONG :
+				{
+					putLong((long) value);
+					break;
+				}
+				case FLOAT :
+				{
+					putFloat((float) value);
+					break;
+				}
+				case DOUBLE :
+				{
+					putDouble((double) value);
+					break;
+				}
+				case BOOLEAN :
+				{
+					putBoolean((boolean) value);
+					break;
+				}
+				case CHARACTER :
+				{
+					putChar((char) value);
+					break;
+				}
 			}
 		}
 		else

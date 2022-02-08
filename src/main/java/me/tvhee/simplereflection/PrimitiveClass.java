@@ -32,23 +32,55 @@ public enum PrimitiveClass
 
 	public boolean isInstance(Object object)
 	{
-		return primitive.equals(object.getClass()) || alternative.equals(object.getClass());
+		return cast(object) != null;
 	}
 
-	public boolean compare(Class<?> test1, Class<?> test2)
+	public Object cast(Object object)
 	{
-		return (test1.equals(primitive) || test1.equals(alternative)) && (test2.equals(primitive) || test2.equals(alternative));
-	}
-
-	public static boolean compareAll(Class<?> test1, Class<?> test2)
-	{
-		for(PrimitiveClass primitiveClass : PrimitiveClass.values())
+		try
 		{
-			if(primitiveClass.compare(test1, test2))
-				return true;
-		}
+			switch(this)
+			{
+				case DOUBLE:
+				{
+					return ((Number) object).doubleValue();
+				}
+				case BYTE:
+				{
+					return ((Number) object).byteValue();
+				}
+				case LONG:
+				{
+					return ((Number) object).longValue();
+				}
+				case FLOAT:
+				{
+					return ((Number) object).floatValue();
+				}
+				case SHORT:
+				{
+					return ((Number) object).shortValue();
+				}
+				case INTEGER:
+				{
+					return ((Number) object).intValue();
+				}
+				case CHARACTER:
+				{
+					return (char) object;
+				}
+				case BOOLEAN:
+				{
+					return (boolean) object;
+				}
+			}
 
-		return false;
+			return true;
+		}
+		catch(ClassCastException e)
+		{
+			return false;
+		}
 	}
 
 	public static PrimitiveClass of(Class<?> clazz)

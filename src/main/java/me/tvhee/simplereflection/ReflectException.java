@@ -56,22 +56,22 @@ public class ReflectException extends RuntimeException
 
 		private String getConstructorMessage(Constructor<?> constructor)
 		{
-			return getClassMessage(constructorMessage.replaceAll("\\{parameters}", Arrays.toString(constructor.getParameterTypes())), constructor.getDeclaringClass());
+			return getClassMessage(constructorMessage.replace("{parameters}", Arrays.toString(constructor.getParameterTypes())), constructor.getDeclaringClass());
 		}
 
 		private String getFieldMessage(Field field)
 		{
-			return getClassMessage(fieldMessage.replaceAll("\\{parameters}", field.getType().toString()).replaceAll("\\{field}", field.getName()), field.getDeclaringClass());
+			return getClassMessage(fieldMessage.replace("{parameters}", field.getType().toString()).replace("{field}", field.getName()), field.getDeclaringClass());
 		}
 
 		private String getMethodMessage(Method method)
 		{
-			return getClassMessage(methodMessage.replaceAll("\\{parameters}", Arrays.toString(method.getParameterTypes())).replaceAll("\\{method}", method.getName()), method.getDeclaringClass());
+			return getClassMessage(methodMessage.replace("{parameters}", Arrays.toString(method.getParameterTypes())).replace("{method}", method.getName()), method.getDeclaringClass());
 		}
 
 		private String getClassMessage(String message, Class<?> clazz)
 		{
-			return message.replaceAll("\\{class}", clazz.getName());
+			return message.replace("{class}", clazz.getName());
 		}
 	}
 
