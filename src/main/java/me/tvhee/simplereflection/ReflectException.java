@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
+@Deprecated
 public class ReflectException extends RuntimeException
 {
 	private final ReflectExceptionCause cause;

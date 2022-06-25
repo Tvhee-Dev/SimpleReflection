@@ -1,25 +1,27 @@
 package me.tvhee.simplereflection;
 
+import java.lang.reflect.InvocationTargetException;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-public class SimpleField
+final class UnsafeField
 {
 	private static Unsafe unsafe;
-	private final PrimitiveClass fieldClass;
+	private final Primitive fieldClass;
 	private final Field field;
 	private long offset;
 	private Object fieldBase;
+	private boolean unsupported;
 
-	public SimpleField(Field field)
+	public UnsafeField(Field field)
 	{
 		if(unsafe == null)
 		{
 			try
 			{
-				final Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
+				Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
 				unsafeField.setAccessible(true);
 				unsafe = (Unsafe) unsafeField.get(null);
 			}
@@ -29,8 +31,28 @@ public class SimpleField
 			}
 		}
 
-		this.fieldClass = PrimitiveClass.of(field.getType());
+		this.fieldClass = Primitive.of(field.getType());
 		this.field = field;
+
+		try
+		{
+			this.unsupported = (boolean) Class.class.getMethod("isRecord").invoke(field.getDeclaringClass());
+
+			if(this.unsupported)
+				field.setAccessible(true);
+		}
+		catch(IllegalAccessException | InvocationTargetException e)
+		{
+			e.printStackTrace();
+		}
+		catch(NoSuchMethodException ignored)
+		{
+		}
+	}
+
+	public boolean isSupported()
+	{
+		return !unsupported;
 	}
 
 	public Field getJavaField()
@@ -38,9 +60,15 @@ public class SimpleField
 		return field;
 	}
 
-	public void setFieldValue(Object instance, Object value) throws ReflectException
+	public void setFieldValue(Object instance, Object value)
 	{
+		if(unsupported)
+			throw new UnsupportedOperationException("Record classes are not supported!");
+
 		initializeField(instance);
+
+		if(!field.getType().isInstance(value) && value != null)
+			throw new IllegalArgumentException(value + " is not an instance of " + field.getType() + "!");
 
 		if(fieldClass == null)
 		{
@@ -94,12 +122,13 @@ public class SimpleField
 				}
 			}
 		}
-		else
-			throw new ReflectException(ReflectException.ReflectExceptionCause.WRONG_PARAMETERS, field, null);
 	}
 
 	public Object getFieldValue(Object instance)
 	{
+		if(unsupported)
+			throw new UnsupportedOperationException("Record classes are not supported!");
+
 		initializeField(instance);
 
 		if(fieldClass == null)
@@ -122,92 +151,92 @@ public class SimpleField
 
 	private int getInt()
 	{
-		return unsafe.getInt(fieldBase, offset);
+		return unsafe.getIntVolatile(fieldBase, offset);
 	}
 
 	private void putInt(int toPut)
 	{
-		unsafe.putInt(fieldBase, offset, toPut);
+		unsafe.putIntVolatile(fieldBase, offset, toPut);
 	}
 
 	private Object getObject()
 	{
-		return unsafe.getObject(fieldBase, offset);
+		return unsafe.getObjectVolatile(fieldBase, offset);
 	}
 
 	private void putObject(Object toPut)
 	{
-		unsafe.putObject(fieldBase, offset, toPut);
+		unsafe.putObjectVolatile(fieldBase, offset, toPut);
 	}
 
 	private boolean getBoolean()
 	{
-		return unsafe.getBoolean(fieldBase, offset);
+		return unsafe.getBooleanVolatile(fieldBase, offset);
 	}
 
 	private void putBoolean(boolean toPut)
 	{
-		unsafe.putBoolean(fieldBase, offset, toPut);
+		unsafe.putBooleanVolatile(fieldBase, offset, toPut);
 	}
 
 	private byte getByte()
 	{
-		return unsafe.getByte(fieldBase, offset);
+		return unsafe.getByteVolatile(fieldBase, offset);
 	}
 
 	private void putByte(byte toPut)
 	{
-		unsafe.putByte(fieldBase, offset, toPut);
+		unsafe.putByteVolatile(fieldBase, offset, toPut);
 	}
 
 	private short getShort()
 	{
-		return unsafe.getShort(fieldBase, offset);
+		return unsafe.getShortVolatile(fieldBase, offset);
 	}
 
 	private void putShort(short toPut)
 	{
-		unsafe.putShort(fieldBase, offset, toPut);
+		unsafe.putShortVolatile(fieldBase, offset, toPut);
 	}
 
 	private char getChar()
 	{
-		return unsafe.getChar(fieldBase, offset);
+		return unsafe.getCharVolatile(fieldBase, offset);
 	}
 
 	private void putChar(char toPut)
 	{
-		unsafe.putChar(fieldBase, offset, toPut);
+		unsafe.putCharVolatile(fieldBase, offset, toPut);
 	}
 
 	private long getLong()
 	{
-		return unsafe.getLong(fieldBase, offset);
+		return unsafe.getLongVolatile(fieldBase, offset);
 	}
 
 	private void putLong(long toPut)
 	{
-		unsafe.putLong(fieldBase, offset, toPut);
+		unsafe.putLongVolatile(fieldBase, offset, toPut);
 	}
 
 	private float getFloat()
 	{
-		return unsafe.getFloat(fieldBase, offset);
+		return unsafe.getFloatVolatile(fieldBase, offset);
 	}
 
 	private void putFloat(float toPut)
 	{
-		unsafe.putFloat(fieldBase, offset, toPut);
+		unsafe.putFloatVolatile(fieldBase, offset, toPut);
 	}
 
 	private double getDouble()
 	{
-		return unsafe.getDouble(fieldBase, offset);
+		return unsafe.getDoubleVolatile(fieldBase, offset);
 	}
 
 	private void putDouble(double toPut)
 	{
-		unsafe.putDouble(fieldBase, offset, toPut);
+		unsafe.putDoubleVolatile(fieldBase, offset, toPut);
 	}
 
 	private void initializeField(Object instance)

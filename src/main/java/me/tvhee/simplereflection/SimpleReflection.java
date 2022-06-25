@@ -3,8 +3,12 @@ package me.tvhee.simplereflection;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+@Deprecated
 public class SimpleReflection
 {
 	private final Class<?> clazz;
@@ -65,25 +69,12 @@ public class SimpleReflection
 		return this;
 	}
 
-	public List<String> getFields()
+	public Map<String, Class<?>> getFields()
 	{
-		List<String> fields = new ArrayList<>();
+		Map<String, Class<?>> fields = new HashMap<>();
 
-		for(Field field : this.clazz.getDeclaredFields())
-			fields.add(field.getName());
-
-		return fields;
-	}
-
-	public List<String> getFields(Class<?> type)
-	{
-		List<String> fields = new ArrayList<>();
-
-		for(Field field : this.clazz.getDeclaredFields())
-		{
-			if(ReflectionProvider.classEquals(type, field.getType()))
-				fields.add(field.getName());
-		}
+		for(Field field : getClassFields(this.clazz))
+			fields.put(field.getName(), field.getType());
 
 		return fields;
 	}
@@ -95,20 +86,38 @@ public class SimpleReflection
 
 	public SimpleReflection setField(Class<?> fieldClass, int index, Object value) throws ReflectException
 	{
-		SimpleField field = getField0(fieldClass, index);
+		Field field = getField0(fieldClass, index);
 
 		if(field != null)
-			field.setFieldValue(instance, value);
+		{
+			try
+			{
+				field.set(instance, value);
+			}
+			catch(IllegalAccessException e)
+			{
+				e.printStackTrace();
+			}
+		}
 
 		return this;
 	}
 
 	public SimpleReflection setField(String fieldName, Object value) throws ReflectException
 	{
-		SimpleField field = getField0(fieldName);
+		Field field = getField0(fieldName);
 
 		if(field != null)
-			field.setFieldValue(instance, value);
+		{
+			try
+			{
+				field.set(instance, value);
+			}
+			catch(IllegalAccessException e)
+			{
+				e.printStackTrace();
+			}
+		}
 
 		return this;
 	}
@@ -137,12 +146,17 @@ public class SimpleReflection
 
 	public SimpleReflection getField(Class<?> fieldClass, int index) throws ReflectException
 	{
-		SimpleField field = getField0(fieldClass, index);
+		Field field = getField0(fieldClass, index);
 
-		if(field == null)
+		try
+		{
+			return field == null ? null : this.checkAndReturn(field.get(this.instance));
+		}
+		catch(IllegalAccessException e)
+		{
+			e.printStackTrace();
 			return null;
-
-		return checkAndReturn(field.getFieldValue(instance));
+		}
 	}
 
 	public boolean hasField(String fieldName)
@@ -159,34 +173,34 @@ public class SimpleReflection
 
 	public SimpleReflection getField(String fieldName) throws ReflectException
 	{
-		SimpleField field = getField0(fieldName);
+		Field field = getField0(fieldName);
 
-		if(field == null)
+		try
+		{
+			return field == null ? null : this.checkAndReturn(field.get(this.instance));
+		}
+		catch(IllegalAccessException e)
+		{
+			e.printStackTrace();
 			return null;
-
-		return checkAndReturn(field.getFieldValue(instance));
+		}
 	}
 
-	private SimpleField getField0(Class<?> fieldClass, int index) throws ReflectException
+	private Field getField0(Class<?> fieldClass, int index) throws ReflectException
 	{
 		int currentIndex = -1;
 
-		for(Class<?> superclass : ReflectionProvider.getSuperClasses(clazz))
+		for(Class<?> superclass : ReflectionUtil.getSuperClasses(clazz))
 		{
-			for(Field field : superclass.getDeclaredFields())
+			for(Field field : getClassFields(superclass))
 			{
-				if(ReflectionProvider.classEquals(fieldClass, field.getType()))
+				if(ReflectionUtil.classEquals(fieldClass, field.getType()))
 				{
 					currentIndex++;
 
 					if(currentIndex == index)
-					{
-						if(!Modifier.isStatic(field.getModifiers()) && instance == null)
-							throw new ReflectException(ReflectException.ReflectExceptionCause.NOT_STATIC, field, null);
-
-						field.setAccessible(true);
-						return new SimpleField(field);
-					}
+						return setFieldAccessible(field);
+						//return new UnsafeField(field);
 				}
 			}
 		}
@@ -194,51 +208,18 @@ public class SimpleReflection
 		return null;
 	}
 
-	private SimpleField getField0(String name) throws ReflectException
+	private Field getField0(String name) throws ReflectException
 	{
-		for(Class<?> superclass : ReflectionProvider.getSuperClasses(clazz))
+		for(Class<?> superclass : ReflectionUtil.getSuperClasses(clazz))
 		{
-			for(Field field : superclass.getDeclaredFields())
+			for(Field field : getClassFields(superclass))
 			{
 				if(field.getName().equals(name))
-				{
-					if(!Modifier.isStatic(field.getModifiers()) && instance == null)
-						throw new ReflectException(ReflectException.ReflectExceptionCause.NOT_STATIC, field, null);
-
-					field.setAccessible(true);
-					return new SimpleField(field);
-				}
+					return setFieldAccessible(field);
 			}
 		}
 
 		return null;
-	}
-
-	public List<Method> getMethods()
-	{
-		List<Method> methods = new ArrayList<>();
-
-		for(Method method : this.clazz.getMethods())
-		{
-			method.setAccessible(true);
-			methods.add(method);
-		}
-
-		return methods;
-	}
-
-	public List<Method> getMethods(String name)
-	{
-		List<Method> methods = getMethods();
-		methods.removeIf(method -> !method.getName().equals(name));
-		return methods;
-	}
-
-	public List<Method> getMethods(Class<?> type)
-	{
-		List<Method> methods = getMethods();
-		methods.removeIf(method -> !ReflectionProvider.classEquals(type, method.getReturnType()));
-		return methods;
 	}
 
 	public SimpleReflection invokeMethod(Class<?> returnType, Object... parameters) throws ReflectException
@@ -248,11 +229,11 @@ public class SimpleReflection
 
 	public SimpleReflection invokeMethod(String name, Object... parameters) throws ReflectException
 	{
-		for(Class<?> superClass : ReflectionProvider.getSuperClasses(clazz))
+		for(Class<?> superClass : ReflectionUtil.getSuperClasses(clazz))
 		{
 			for(Method method : superClass.getDeclaredMethods())
 			{
-				if(method.getName().equals(name) && ReflectionProvider.parametersEquals(method.getParameterTypes(), ReflectionProvider.getClasses(parameters)))
+				if(method.getName().equals(name) && ReflectionUtil.parametersEquals(method.getParameterTypes(), ReflectionUtil.getClasses(parameters)))
 					return invokeMethod0(method, parameters);
 			}
 		}
@@ -264,11 +245,11 @@ public class SimpleReflection
 	{
 		int currentIndex = -1;
 
-		for(Class<?> superClass : ReflectionProvider.getSuperClasses(clazz))
+		for(Class<?> superClass : ReflectionUtil.getSuperClasses(clazz))
 		{
 			for(Method method : superClass.getDeclaredMethods())
 			{
-				if(ReflectionProvider.classEquals(returnType, method.getReturnType()) && ReflectionProvider.parametersEquals(method.getParameterTypes(), ReflectionProvider.getClasses(parameters)))
+				if(ReflectionUtil.classEquals(returnType, method.getReturnType()) && ReflectionUtil.parametersEquals(method.getParameterTypes(), ReflectionUtil.getClasses(parameters)))
 				{
 					currentIndex++;
 
@@ -306,7 +287,7 @@ public class SimpleReflection
 	{
 		for(Constructor<?> constructor : clazz.getDeclaredConstructors())
 		{
-			if(ReflectionProvider.parametersEquals(constructor.getParameterTypes(), ReflectionProvider.getClasses(parameters)))
+			if(ReflectionUtil.parametersEquals(constructor.getParameterTypes(), ReflectionUtil.getClasses(parameters)))
 			{
 				try
 				{
@@ -335,5 +316,47 @@ public class SimpleReflection
 			return null;
 
 		return new SimpleReflection(value);
+	}
+
+	private List<Method> getClassMethods(Class<?> type)
+	{
+		List<Method> methods = new ArrayList<>();
+
+		for(Method method : this.clazz.getDeclaredMethods())
+		{
+			if(ReflectionUtil.classEquals(this.clazz, method.getReturnType()))
+				methods.add(method);
+		}
+
+		return methods;
+	}
+
+	private List<Field> getClassFields(Class<?> type)
+	{
+		List<Field> fields = new ArrayList<>();
+		Collections.addAll(fields, type.getDeclaredFields());
+		return fields;
+	}
+
+	private Field setFieldAccessible(Field field)
+	{
+		if(!Modifier.isStatic(field.getModifiers()) && instance == null)
+			throw new ReflectException(ReflectException.ReflectExceptionCause.NOT_STATIC, field, null);
+
+		try
+		{
+			field.setAccessible(true);
+
+			Field modifiersField = Field.class.getDeclaredField("modifiers");
+			modifiersField.setAccessible(true);
+
+			modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+		}
+		catch(IllegalAccessException | NoSuchFieldException e)
+		{
+			e.printStackTrace();
+		}
+
+		return field;
 	}
 }
