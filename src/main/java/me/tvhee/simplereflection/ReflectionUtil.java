@@ -64,16 +64,16 @@ public final class ReflectionUtil
 
 		for(int i = 0; i < requestedParameters.length; i++)
 		{
-			if(!classEquals(parameters[i], requestedParameters[i]) && parameters[i] != null)
+			if(!classEquals(parameters[i], requestedParameters[i]) && parameters[i] != null && Primitive.of(parameters[i]) == null)
 				return false;
 		}
 
 		return true;
 	}
 
-	public static boolean classEquals(Class<?> clazz1, Class<?> clazz2)
+	public static boolean classEquals(Class<?> clazz, Class<?> requestedClazz)
 	{
-		return clazz1 != null && clazz2 != null && (clazz1.isAssignableFrom(clazz2) || clazz1.equals(clazz2) || Primitive.compare(clazz1, clazz2));
+		return clazz != null && requestedClazz != null && (requestedClazz.isAssignableFrom(clazz) || requestedClazz.equals(clazz) || Primitive.compare(clazz, requestedClazz));
 	}
 
 	public static List<Class<?>> getSuperClasses(Class<?> clazz)

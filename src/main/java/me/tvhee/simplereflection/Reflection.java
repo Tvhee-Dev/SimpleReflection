@@ -144,7 +144,7 @@ public final class Reflection
 
 		for(Field field : getFields0(clazz))
 		{
-			if(!ReflectionUtil.classEquals(field.getType(), returnType))
+			if(!ReflectionUtil.classEquals(returnType, field.getType()))
 				continue;
 
 			UnsafeField unsafeField = new UnsafeField(field);
@@ -174,7 +174,7 @@ public final class Reflection
 	{
 		List<Reflection> reflectedFields = new ArrayList<>();
 		List<Field> fields = getFields0(clazz);
-		fields.removeIf(field -> !ReflectionUtil.classEquals(field.getType(), returnType));
+		fields.removeIf(field -> !ReflectionUtil.classEquals(returnType, field.getType()));
 		int currentIndex = search == FieldSearch.BEFORE_INDEX ? fields.size() : 0;
 
 		for(Field field : fields)
@@ -221,7 +221,7 @@ public final class Reflection
 	public Reflection fields(Class<?> returnType, Function<Reflection, Object> value)
 	{
 		List<Field> fieldsToSet = getFields0(clazz);
-		fieldsToSet.removeIf(field -> !ReflectionUtil.classEquals(field.getType(), returnType));
+		fieldsToSet.removeIf(field -> !ReflectionUtil.classEquals(returnType, field.getType()));
 		return setFieldValues0(fieldsToSet, value);
 	}
 
@@ -248,7 +248,7 @@ public final class Reflection
 
 		for(Field field : classFields)
 		{
-			if(!ReflectionUtil.classEquals(field.getType(), returnType))
+			if(!ReflectionUtil.classEquals(returnType, field.getType()))
 				continue;
 
 			if(search == FieldSearch.AFTER_INDEX && currentIndex < index)
@@ -276,7 +276,7 @@ public final class Reflection
 				addFieldValue0(field, value, fieldValues, classField);
 			}
 
-			return new Reflection(clazz).instance(fieldValues.toArray());
+			return instance(fieldValues.toArray());
 		}
 
 		Reflection fieldValue = getFieldValue0(field);
@@ -307,7 +307,7 @@ public final class Reflection
 					addFieldValue0(unsafeField, value, fieldValues, classField);
 			}
 
-			return new Reflection(clazz).instance(fieldValues.toArray());
+			return instance(fieldValues.toArray());
 		}
 
 		for(UnsafeField field : fields)
@@ -487,7 +487,7 @@ public final class Reflection
 		{
 			for(Method method : superClass.getDeclaredMethods())
 			{
-				if(method.getName().equals(name) && ReflectionUtil.parametersEquals(method.getParameterTypes(), parameters))
+				if(method.getName().equals(name) && ReflectionUtil.parametersEquals(parameters, method.getParameterTypes()))
 				{
 					method.setAccessible(true);
 					return method;
@@ -506,7 +506,7 @@ public final class Reflection
 		{
 			for(Method method : superClass.getDeclaredMethods())
 			{
-				if(ReflectionUtil.parametersEquals(method.getParameterTypes(), parameters))
+				if(ReflectionUtil.parametersEquals(parameters, method.getParameterTypes()))
 				{
 					currentIndex++;
 
@@ -530,7 +530,7 @@ public final class Reflection
 		{
 			for(Method method : superClass.getDeclaredMethods())
 			{
-				if(ReflectionUtil.classEquals(method.getReturnType(), returnType))
+				if(ReflectionUtil.classEquals(returnType, method.getReturnType()))
 				{
 					currentIndex++;
 
