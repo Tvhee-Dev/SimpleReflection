@@ -64,10 +64,20 @@ public final class Reflection
 	{
 		List<Class<?>> classes = new ArrayList<>();
 
-		if(clazz.getGenericSuperclass() instanceof ParameterizedType)
+		for(Class<?> superClass : ReflectionUtil.getSuperClasses(clazz))
 		{
-			for(Type type : ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments())
-				classes.add((Class<?>) type);
+			List<Type> genericTypes = new ArrayList<>();
+			genericTypes.add(superClass.getGenericSuperclass());
+			genericTypes.addAll(Arrays.asList(superClass.getGenericInterfaces()));
+
+			for(Type genericType : genericTypes)
+			{
+				if(genericType instanceof ParameterizedType)
+				{
+					for(Type type : ((ParameterizedType) genericType).getActualTypeArguments())
+						classes.add((Class<?>) type);
+				}
+			}
 		}
 
 		return classes;
