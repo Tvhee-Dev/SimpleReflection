@@ -213,7 +213,7 @@ public final class Reflection
 
 	public Reflection field(String name, Function<Reflection, Object> value)
 	{
-		return setFieldValue0(field0(name), value);
+		return setFieldValue0(field0(name), value == null ? (fieldValue) -> null : value);
 	}
 
 	public Reflection field(Class<?> returnType, Object value)
@@ -223,7 +223,7 @@ public final class Reflection
 
 	public Reflection field(Class<?> returnType, Function<Reflection, Object> value)
 	{
-		return field(0, returnType, value);
+		return field(0, returnType, value == null ? (fieldValue) -> null : value);
 	}
 
 	public Reflection fields(Class<?> returnType, Object value)
@@ -235,7 +235,7 @@ public final class Reflection
 	{
 		List<Field> fieldsToSet = getFields0(clazz);
 		fieldsToSet.removeIf(field -> !ReflectionUtil.classEquals(returnType, field.getType()));
-		return setFieldValues0(fieldsToSet, value);
+		return setFieldValues0(fieldsToSet, value == null ? (fieldValue) -> null : value);
 	}
 
 	public Reflection field(int index, Class<?> returnType, Object value)
@@ -245,7 +245,7 @@ public final class Reflection
 
 	public Reflection field(int index, Class<?> returnType, Function<Reflection, Object> value)
 	{
-		return setFieldValue0(field0(index, returnType), value);
+		return setFieldValue0(field0(index, returnType), value == null ? (fieldValue) -> null : value);
 	}
 
 	public Reflection fields(int index, FieldSearch search, Class<?> returnType, Object value)
@@ -272,7 +272,7 @@ public final class Reflection
 				fields.add(field);
 		}
 
-		return setFieldValues0(fields, value);
+		return setFieldValues0(fields, value == null ? (fieldValue) -> null : value);
 	}
 
 	private Reflection setFieldValue0(UnsafeField field, Function<Reflection, Object> value)
