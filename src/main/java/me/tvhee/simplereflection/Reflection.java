@@ -97,11 +97,11 @@ public final class Reflection
 
 		for(Constructor<?> constructor : clazz.getDeclaredConstructors())
 		{
-			if(ReflectionUtil.parametersEquals(ReflectionUtil.getClasses(arguments.toArray()), constructor.getParameterTypes()))
+			if(ReflectionUtil.parametersEquals(ReflectionUtil.getClasses(constructorArguments), constructor.getParameterTypes()))
 			{
 				try
 				{
-					return new Reflection(constructor.newInstance(arguments));
+					return new Reflection(constructor.newInstance(arguments.toArray()));
 				}
 				catch(InstantiationException | IllegalAccessException | InvocationTargetException e)
 				{
