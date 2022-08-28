@@ -104,7 +104,10 @@ public final class ReflectionUtil
 		Class<?>[] classes = new Class[objects.length];
 
 		for(int i = 0; i < objects.length; i++)
-			classes[i] = objects[i] == null ? null : objects[i].getClass();
+		{
+			Object object = objects[i] instanceof Reflection ? ((Reflection) objects[i]).object() : objects[i];
+			classes[i] = object == null ? null : object.getClass();
+		}
 
 		return classes;
 	}

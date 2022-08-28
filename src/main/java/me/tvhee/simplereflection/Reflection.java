@@ -90,13 +90,18 @@ public final class Reflection
 
 	public Reflection instance(Object... constructorArguments)
 	{
+		List<Object> arguments = new ArrayList<>();
+
+		for(Object argument : constructorArguments)
+			arguments.add(checkObject(argument));
+
 		for(Constructor<?> constructor : clazz.getDeclaredConstructors())
 		{
-			if(ReflectionUtil.parametersEquals(ReflectionUtil.getClasses(constructorArguments), constructor.getParameterTypes()))
+			if(ReflectionUtil.parametersEquals(ReflectionUtil.getClasses(arguments.toArray()), constructor.getParameterTypes()))
 			{
 				try
 				{
-					return new Reflection(constructor.newInstance(constructorArguments));
+					return new Reflection(constructor.newInstance(arguments));
 				}
 				catch(InstantiationException | IllegalAccessException | InvocationTargetException e)
 				{
@@ -292,8 +297,7 @@ public final class Reflection
 			return instance(fieldValues.toArray());
 		}
 
-		Reflection fieldValue = getFieldValue0(field);
-		field.setFieldValue(object, value.apply(fieldValue));
+		field.setFieldValue(object, checkObject(value.apply(getFieldValue0(field))));
 		return this;
 	}
 
@@ -324,10 +328,7 @@ public final class Reflection
 		}
 
 		for(UnsafeField field : fields)
-		{
-			Reflection fieldValue = getFieldValue0(field);
-			field.setFieldValue(object, value.apply(fieldValue));
-		}
+			field.setFieldValue(object, checkObject(value.apply(getFieldValue0(field))));
 
 		return this;
 	}
@@ -339,7 +340,7 @@ public final class Reflection
 			classField.setAccessible(true);
 
 			if(classField.getName().equals(field.getJavaField().getName()))
-				fieldValues.add(value.apply(classField.get(object) == null ? null : new Reflection(classField.get(object))));
+				fieldValues.add(checkObject(value.apply(classField.get(object) == null ? null : new Reflection(classField.get(object)))));
 			else
 				fieldValues.add(classField.get(object));
 		}
@@ -367,7 +368,9 @@ public final class Reflection
 			}
 		}
 		else
+		{
 			fieldValue = field.getFieldValue(object);
+		}
 
 		if(fieldValue == null)
 			return null;
@@ -559,8 +562,11 @@ public final class Reflection
 		throw new IllegalArgumentException("Method (index: " + index + ", type: " + returnType + ") not found!");
 	}
 
-	private Reflection invokeMethod0(Method method, Object[] arguments)
+	private Reflection invokeMethod0(Method method, Object... arguments)
 	{
+		for(int i = 0; i < arguments.length; i++)
+			arguments[i] = checkObject(arguments[i]);
+
 		try
 		{
 			Object value = method.invoke(Modifier.isStatic(method.getModifiers()) ? null : object, arguments);
@@ -601,6 +607,14 @@ public final class Reflection
 		{
 			return null;
 		}
+	}
+
+	private Object checkObject(Object object)
+	{
+		if(object instanceof Reflection)
+			return ((Reflection) object).object();
+
+		return object;
 	}
 
 	public enum FieldSearch
